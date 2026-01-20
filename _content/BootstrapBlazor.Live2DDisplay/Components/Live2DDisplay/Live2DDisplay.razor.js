@@ -176,8 +176,32 @@ export function addHitAreaFrames(id, isaddHitAreaFrames) {
     createHitAreaFrames(data.op, data.model);
 }
 
+
+function resolveSourceToBase(source) {
+    if (!source || typeof source !== 'string') {
+        return source;
+    }
+
+    if (source.startsWith('http:') || source.startsWith('https:') || source.startsWith('data:') || source.startsWith('blob:') || source.startsWith('//')) {
+        return source;
+    }
+
+    const baseUrl = new URL(document.baseURI);
+    const basePath = baseUrl.pathname.replace(/\/$/, '');
+
+    if (basePath && source.startsWith(basePath + '/')) {
+        return source;
+    }
+
+    if (basePath && source.startsWith('/')) {
+        return basePath + source;
+    }
+
+    return new URL(source, baseUrl).toString();
+}
+
 async function createModel(op) {
-    const model = await PIXI.live2d.Live2DModel.from(op.source);
+    const model = await PIXI.live2d.Live2DModel.from(resolveSourceToBase(op.source));
     model.scale.set(op.scale);
     model.x = op.x;
     model.y = op.y;
